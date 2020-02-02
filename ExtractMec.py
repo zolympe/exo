@@ -15,11 +15,20 @@ import re
 page_max=10
 item_max_per_page=16
 
+maker=('Scarpa','Vaja','La Sportiva','Salomon','Nike','Adidas','Keen','Asics','Oboz','Altra','North Face','Brooks','New Balance','Saucony','Forsake','Merrel','Merrell')
+
+def identifyMaker(brand):
+    for i in maker:
+        if (brand.find(i)>-1):
+            print("Maker Match : " + i)
+            return(i)
+    return("Other")
+
 headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36'}
 url="https://www.mec.ca/fr/sexe/hommes/produits/bottes-et-chaussures/chaussures/c/1195?page=1"
 
 dataframe =pd.DataFrame()
-myDict={ "brand":[] ,"price":[]}
+myDict={ "brand":[] ,"price":[], "seller":[], "maker":[]}
 
 for page in range(0,page_max):
     response = requests.get("https://www.mec.ca/fr/sexe/hommes/produits/bottes-et-chaussures/chaussures/c/1195?page={0}".format(page), headers=headers)
@@ -62,8 +71,13 @@ for page in range(0,page_max):
         if (p and b): # si on a une ligne complete
             print(brandTxt + priceTxt) 
             CountOk+=1
+            # on convertit en numerique
+            priceTxt2=priceTxt.replace(',','.')
+            priceTxt3=priceTxt2.replace('$',' ')
             myDict['brand'].append(brandTxt)
-            myDict['price'].append(priceTxt)
+            myDict['price'].append(float(priceTxt3))
+            myDict['seller'].append("mec")
+            myDict['maker'].append(identifyMaker(brandTxt))
         if (p+b<2):
             print("One item was dismissed")
             CountDismiss+=1
@@ -71,5 +85,5 @@ for page in range(0,page_max):
     print("Page {:d} : {:d} read and {:d} dismiss".format(page,CountOk,CountDismiss))
 
 df=pd.DataFrame(myDict)
-df.to_csv("mec_chaussure.csv")
+df.to_csv("chaussures.csv")
 
